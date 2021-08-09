@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,7 +23,7 @@ public class BlockLogic : MonoBehaviour
         foreach (Transform subBlock in rig.transform)
         {
             if(subBlock.transform.position.x >= GameLogic.width ||
-                subBlock.transform.position.x < 0 ||
+                Math.Round(subBlock.transform.position.x) < 0 ||
                 subBlock.transform.position.y < 0)
             {
                 return false;
@@ -70,7 +71,7 @@ public class BlockLogic : MonoBehaviour
                 horizontalTimer = 0;
                 foreach (Transform sub in rig.transform)
                 {
-                    Debug.Log(sub.transform.position.x);
+                    Debug.Log(Math.Round(sub.transform.position.x));
                 }
                 if (!CheckValid())
                 {
@@ -93,7 +94,7 @@ public class BlockLogic : MonoBehaviour
                 rig.transform.eulerAngles -= new Vector3(0, 0, 90);
                 foreach (Transform sub in rig.transform)
                 {
-                    Debug.Log(sub.transform.position.x);
+                    Debug.Log(Math.Round(sub.transform.position.x));
                 }
                 if (!CheckValid())
                 {
