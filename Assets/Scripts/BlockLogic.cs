@@ -1,30 +1,58 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BlockLogic : MonoBehaviour
 {
-    private bool movable = true;
-    private float timer = 0f;
-    private float horizontalTimer = 0f;
+    private bool _movable = true;
+    private float _timer = 0f;
+    private float _horizontalTimer = 0f;
 
-    public GameObject rig;
+    private GameLogic _gameLogic;
+    private Transform _transform;
+    private Transform _rigTransform;
+
+    public GameObject Rig;
 
     // Start is called before the first frame update
     private void Start()
     {
-        
+        _gameLogic = FindObjectOfType<GameLogic>();
+        _transform = transform;
+        _rigTransform = Rig.transform;
+    }
+
+    private void ResetBlock()
+    {
+        _movable = false;
+        _transform.position += new Vector3(0, 1, 0);
+        AddBlockToGrid();
+        _gameLogic.SpawnBlock();
+    }
+
+    // Change the x-axis height to the highest y-axis position in the stored grid
+    private void AddBlockToGrid()
+    {
+        foreach (Transform subBlock in _rigTransform)
+        {
+            _gameLogic.Grid[Mathf.RoundToInt(subBlock.position.x), Mathf.FloorToInt(subBlock.position.y)] = subBlock;
+        }
     }
 
     // Check for valid positions
     private bool CheckValid()
     {
-        foreach (Transform subBlock in rig.transform)
+        foreach (Transform subBlock in _rigTransform)
         {
-            if(subBlock.transform.position.x >= GameLogic.width ||
+            if (subBlock.transform.position.x >= GameLogic.Width ||
                 Math.Round(subBlock.transform.position.x) < 0 ||
                 subBlock.transform.position.y < 0)
+            {
+                return false;
+            }
+            if (subBlock.position.y < GameLogic.Height && _gameLogic.Grid[Mathf.RoundToInt(subBlock.position.x), Mathf.FloorToInt(subBlock.position.y)] != null)
             {
                 return false;
             }
@@ -35,79 +63,70 @@ public class BlockLogic : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        // If the block has not landed on the ground yet
-        if (movable)
+        // If the block has already landed
+        if (!_movable) return; // This is a guard clause
+
+        // Update the _timer
+        _timer += 1 * Time.deltaTime;
+        _horizontalTimer += 1 * Time.deltaTime;
+
+        // Soft drop functionality
+        if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime)
         {
-            // Update the timer
-            timer += 1 * Time.deltaTime;
-            horizontalTimer += 1 * Time.deltaTime;
+            _transform.position -= new Vector3(0, 1, 0);
+            _timer = 0;
+            if (!CheckValid())
+            {
+                ResetBlock();
+            }
+        }
+        else if (_timer > GameLogic.DropTime) // Automatically falling block
+        {
+            _transform.position -= new Vector3(0, 1, 0);
+            _timer = 0;
+            if (!CheckValid())
+            {
+                ResetBlock();
+            }
+        }
 
-            // Soft drop functionality
-            if (Input.GetKey(KeyCode.DownArrow) && timer > GameLogic.softDropTime)
-            {
-                gameObject.transform.position -= new Vector3(0, 1, 0);
-                timer = 0;
-                if (!CheckValid())
-                {
-                    movable = false;
-                    gameObject.transform.position += new Vector3(0, 1, 0);
-                }
-            }
-            else if (timer > GameLogic.dropTime) // Automatically falling block
-            {
-                gameObject.transform.position -= new Vector3(0, 1, 0);
-                timer = 0;
-                if (!CheckValid())
-                {
-                    movable = false;
-                    gameObject.transform.position += new Vector3(0, 1, 0);
-                }
-            }
+        // Implement hard drop, check lowest position on y axis and place block down
 
-            // Repeated horizontal block movement
-            if (Input.GetKey(KeyCode.LeftArrow) && horizontalTimer > GameLogic.horizontalMoveTime)
+        // Repeated horizontal block movement
+        if (Input.GetKey(KeyCode.LeftArrow) && _horizontalTimer > GameLogic.HorizontalMoveTime)
+        {
+            _transform.position -= new Vector3(1, 0, 0);
+            _horizontalTimer = 0;
+            if (!CheckValid())
             {
-                gameObject.transform.position -= new Vector3(1, 0, 0);
-                horizontalTimer = 0;
-                foreach (Transform sub in rig.transform)
-                {
-                    Debug.Log(Math.Round(sub.transform.position.x));
-                }
-                if (!CheckValid())
-                {
-                    gameObject.transform.position += new Vector3(1, 0, 0);
-                }
+                _transform.position += new Vector3(1, 0, 0);
             }
-            else if (Input.GetKey(KeyCode.RightArrow) && horizontalTimer > GameLogic.horizontalMoveTime)
+        }
+        else if (Input.GetKey(KeyCode.RightArrow) && _horizontalTimer > GameLogic.HorizontalMoveTime)
+        {
+            _transform.position += new Vector3(1, 0, 0);
+            _horizontalTimer = 0;
+            if (!CheckValid())
             {
-                gameObject.transform.position += new Vector3(1, 0, 0);
-                horizontalTimer = 0;
-                if (!CheckValid())
-                {
-                    gameObject.transform.position -= new Vector3(1, 0, 0);
-                }
+                _transform.position -= new Vector3(1, 0, 0);
             }
+        }
 
-            // Block rotation
-            if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.UpArrow))
+        // Block rotation
+        if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            _rigTransform.eulerAngles -= new Vector3(0, 0, 90);
+            if (!CheckValid())
             {
-                rig.transform.eulerAngles -= new Vector3(0, 0, 90);
-                foreach (Transform sub in rig.transform)
-                {
-                    Debug.Log(Math.Round(sub.transform.position.x));
-                }
-                if (!CheckValid())
-                {
-                    rig.transform.eulerAngles += new Vector3(0, 0, 90);
-                }
+                _rigTransform.eulerAngles += new Vector3(0, 0, 90);
             }
-            else if (Input.GetKeyDown(KeyCode.Z))
+        }
+        else if (Input.GetKeyDown(KeyCode.Z))
+        {
+            _rigTransform.eulerAngles += new Vector3(0, 0, 90);
+            if (!CheckValid())
             {
-                rig.transform.eulerAngles += new Vector3(0, 0, 90);
-                if (!CheckValid())
-                {
-                    rig.transform.eulerAngles -= new Vector3(0, 0, 90);
-                }
+                _rigTransform.eulerAngles -= new Vector3(0, 0, 90);
             }
         }
     }
