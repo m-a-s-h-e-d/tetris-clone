@@ -17,11 +17,13 @@ public class GameLogic : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
+        // If switched to 7-bag method, need to instantiate a new bag at the start
         SpawnBlock();
     }
 
     public void SpawnBlock()
     {
+        // Possibly switch this with a generated bag object
         var guess = Random.Range(0, 1f);
         guess *= Blocks.Length;
         Instantiate(Blocks[Mathf.FloorToInt(guess)]);
