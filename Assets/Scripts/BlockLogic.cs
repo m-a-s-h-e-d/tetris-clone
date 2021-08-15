@@ -10,6 +10,9 @@ public class BlockLogic : MonoBehaviour
     private float _timer = 0f;
     private float _horizontalTimer = 0f;
 
+    private bool _firstInput = true;
+    private float _dasTimer = 0f;
+
     private GameLogic _gameLogic;
     private Transform _transform;
     private Transform _rigTransform;
@@ -70,6 +73,12 @@ public class BlockLogic : MonoBehaviour
         _timer += 1 * Time.deltaTime;
         _horizontalTimer += 1 * Time.deltaTime;
 
+        // Update das timer if activated
+        if (!_firstInput)
+        {
+            _dasTimer += 1 * Time.deltaTime;
+        }
+
         // Soft drop functionality
         if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime)
         {
@@ -93,23 +102,68 @@ public class BlockLogic : MonoBehaviour
         // Implement hard drop, check lowest position on y axis and place block down
 
         // Repeated horizontal block movement
-        if (Input.GetKey(KeyCode.LeftArrow) && _horizontalTimer > GameLogic.HorizontalMoveTime)
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
-            _transform.position -= new Vector3(1, 0, 0);
-            _horizontalTimer = 0;
-            if (!CheckValid())
+            switch (_firstInput)
             {
-                _transform.position += new Vector3(1, 0, 0);
+                case true:
+                {
+                    _transform.position -= new Vector3(1, 0, 0);
+                    _firstInput = false;
+                    _horizontalTimer = 0;
+                    if (!CheckValid())
+                    {
+                        _transform.position += new Vector3(1, 0, 0);
+                    }
+
+                    break;
+                }
+                case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
+                {
+                    _transform.position -= new Vector3(1, 0, 0);
+                    _horizontalTimer = 0;
+                    if (!CheckValid())
+                    {
+                        _transform.position += new Vector3(1, 0, 0);
+                    }
+
+                    break;
+                }
             }
         }
-        else if (Input.GetKey(KeyCode.RightArrow) && _horizontalTimer > GameLogic.HorizontalMoveTime)
+        else if (Input.GetKey(KeyCode.RightArrow))
         {
-            _transform.position += new Vector3(1, 0, 0);
-            _horizontalTimer = 0;
-            if (!CheckValid())
+            switch (_firstInput)
             {
-                _transform.position -= new Vector3(1, 0, 0);
+                case true:
+                {
+                    _transform.position += new Vector3(1, 0, 0);
+                    _firstInput = false;
+                    _horizontalTimer = 0;
+                    if (!CheckValid())
+                    {
+                        _transform.position -= new Vector3(1, 0, 0);
+                    }
+
+                    break;
+                }
+                case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
+                {
+                    _transform.position += new Vector3(1, 0, 0);
+                    _horizontalTimer = 0;
+                    if (!CheckValid())
+                    {
+                        _transform.position -= new Vector3(1, 0, 0);
+                    }
+
+                    break;
+                }
             }
+        }
+        else
+        {
+            _dasTimer = 0;
+            _firstInput = true;
         }
 
         // Block rotation
