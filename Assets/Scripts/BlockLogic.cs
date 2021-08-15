@@ -7,10 +7,9 @@ using UnityEngine;
 public class BlockLogic : MonoBehaviour
 {
     private bool _movable = true;
+    private bool _firstInput = true;
     private float _timer = 0f;
     private float _horizontalTimer = 0f;
-
-    private bool _firstInput = true;
     private float _dasTimer = 0f;
 
     private GameLogic _gameLogic;
@@ -25,6 +24,11 @@ public class BlockLogic : MonoBehaviour
         _gameLogic = FindObjectOfType<GameLogic>();
         _transform = transform;
         _rigTransform = Rig.transform;
+
+        if (CheckValid()) return;
+
+        _movable = false;
+        _gameLogic.EndGame();
     }
 
     private void ResetBlock()
@@ -41,6 +45,28 @@ public class BlockLogic : MonoBehaviour
         foreach (Transform subBlock in _rigTransform)
         {
             _gameLogic.Grid[Mathf.RoundToInt(subBlock.position.x), Mathf.FloorToInt(subBlock.position.y)] = subBlock;
+        }
+    }
+
+    // Shift the current block's transform left
+    private void ShiftLeft()
+    {
+        _transform.position -= new Vector3(1, 0, 0);
+        _horizontalTimer = 0;
+        if (!CheckValid())
+        {
+            _transform.position += new Vector3(1, 0, 0);
+        }
+    }
+
+    // Shift the current block's transform right
+    private void ShiftRight()
+    {
+        _transform.position += new Vector3(1, 0, 0);
+        _horizontalTimer = 0;
+        if (!CheckValid())
+        {
+            _transform.position -= new Vector3(1, 0, 0);
         }
     }
 
@@ -80,13 +106,23 @@ public class BlockLogic : MonoBehaviour
         }
 
         // Soft drop functionality
-        if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime)
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Move the game object down based on greatest y value out of all x-axis of the rig
+            int cells = 5;
+            _gameLogic.IncrementDropScore(true, cells);
+        }
+        else if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime)
         {
             _transform.position -= new Vector3(0, 1, 0);
             _timer = 0;
             if (!CheckValid())
             {
                 ResetBlock();
+            }
+            else
+            {
+                _gameLogic.IncrementDropScore(false);
             }
         }
         else if (_timer > GameLogic.DropTime) // Automatically falling block
@@ -108,25 +144,13 @@ public class BlockLogic : MonoBehaviour
             {
                 case true:
                 {
-                    _transform.position -= new Vector3(1, 0, 0);
                     _firstInput = false;
-                    _horizontalTimer = 0;
-                    if (!CheckValid())
-                    {
-                        _transform.position += new Vector3(1, 0, 0);
-                    }
-
+                    ShiftLeft();
                     break;
                 }
                 case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
                 {
-                    _transform.position -= new Vector3(1, 0, 0);
-                    _horizontalTimer = 0;
-                    if (!CheckValid())
-                    {
-                        _transform.position += new Vector3(1, 0, 0);
-                    }
-
+                    ShiftLeft();
                     break;
                 }
             }
@@ -137,30 +161,18 @@ public class BlockLogic : MonoBehaviour
             {
                 case true:
                 {
-                    _transform.position += new Vector3(1, 0, 0);
                     _firstInput = false;
-                    _horizontalTimer = 0;
-                    if (!CheckValid())
-                    {
-                        _transform.position -= new Vector3(1, 0, 0);
-                    }
-
+                    ShiftRight();
                     break;
                 }
                 case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
                 {
-                    _transform.position += new Vector3(1, 0, 0);
-                    _horizontalTimer = 0;
-                    if (!CheckValid())
-                    {
-                        _transform.position -= new Vector3(1, 0, 0);
-                    }
-
+                    ShiftRight();
                     break;
                 }
             }
         }
-        else
+        else if (!Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
         {
             _dasTimer = 0;
             _firstInput = true;
