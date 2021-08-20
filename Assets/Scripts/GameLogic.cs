@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -17,15 +16,19 @@ public class GameLogic : MonoBehaviour
     private long _score;
     private int _combo;
 
-    public GameObject[] Blocks;
+    private BagLogic _bagLogic;
+    private Queue<GameObject> _blockQueue;
+
     public Transform[,] Grid = new Transform[Width, Height];
 
     // Start is called before the first frame update
     private void Start()
     {
+        _bagLogic = FindObjectOfType<BagLogic>();
         _score = 0;
         _combo = 0;
-        // If switched to 7-bag method, need to instantiate a new bag at the start
+        // Create the 7-bag block queue and spawn the first block
+        _blockQueue = new Queue<GameObject>(_bagLogic.InitializeBag());
         SpawnBlock();
     }
 
@@ -126,9 +129,13 @@ public class GameLogic : MonoBehaviour
 
     public void SpawnBlock()
     {
-        // Possibly switch this with a generated bag object
-        var guess = Random.Range(0, 1f);
-        guess *= Blocks.Length;
-        Instantiate(Blocks[Mathf.FloorToInt(guess)]);
+        if (_blockQueue.Count <= 5)
+        {
+            foreach (var block in _bagLogic.InitializeBag())
+            {
+                _blockQueue.Enqueue(block);
+            }
+        }
+        Instantiate(_blockQueue.Dequeue());
     }
 }
