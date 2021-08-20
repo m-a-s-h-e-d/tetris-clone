@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -11,13 +12,12 @@ public class GameLogic : MonoBehaviour
     public static float SoftDropTime = 0.05f;
     public static float HorizontalMoveTime = 0.05f;
     public static float DelayedAutoShiftTime = 0.35f;
-    public static int Width = 30, Height = 27;
+    public static int Width = 30, Height = 24;
     
     private long _score;
     private int _combo;
 
     public GameObject[] Blocks;
-    // Height is +3 to allow blocks above the play field as long as it doesn't block the next block from spawning
     public Transform[,] Grid = new Transform[Width, Height];
 
     // Start is called before the first frame update
@@ -60,7 +60,7 @@ public class GameLogic : MonoBehaviour
                 _score += 50 * _combo;
                 break;
         }
-        Debug.Log(_score);
+        //Debug.Log(_score);
     }
 
     public void IncrementDropScore(bool isHardDrop, int cells = 1)
@@ -72,7 +72,55 @@ public class GameLogic : MonoBehaviour
             // Soft drop score
             false => (cells * 5)
         };
-        Debug.Log(_score);
+        //Debug.Log(_score);
+    }
+
+    public void ClearLines()
+    {
+        for (var y = Height - 1; y >= 0; y--)
+        {
+            if (!IsLineComplete(y)) continue;
+            DestroyLine(y);
+            MoveLines(y);
+        }
+    }
+
+    private void MoveLines(int y)
+    {
+        for (var i = y; i < Height - 1; i++)
+        {
+            for (var x = 0; x < Width; x++)
+            {
+                if (Grid[x, i + 1] != null)
+                {
+                    Grid[x, i] = Grid[x, i + 1];
+                    Grid[x, i].gameObject.transform.position -= new Vector3(0, 1, 0);
+                    Grid[x, i + 1] = null;
+                }
+            }
+        }
+    }
+
+    private void DestroyLine(int y)
+    {
+        for (var x = 0; x < Width; x++)
+        {
+            Destroy(Grid[x, y].gameObject);
+            Grid[x, y] = null;
+        }
+    }
+
+    private bool IsLineComplete(int y)
+    {
+        for (var x = 0; x < Width; x++)
+        {
+            if (Grid[x, y] == null)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public void SpawnBlock()

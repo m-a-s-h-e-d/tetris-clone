@@ -36,6 +36,7 @@ public class BlockLogic : MonoBehaviour
         _movable = false;
         _transform.position += new Vector3(0, 1, 0);
         AddBlockToGrid();
+        _gameLogic.ClearLines();
         _gameLogic.SpawnBlock();
     }
 
@@ -105,14 +106,14 @@ public class BlockLogic : MonoBehaviour
             _dasTimer += 1 * Time.deltaTime;
         }
 
-        // Soft drop functionality
+        // Implement hard drop, check lowest position on y axis and place block down
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Move the game object down based on greatest y value out of all x-axis of the rig
             int cells = 5;
             _gameLogic.IncrementDropScore(true, cells);
         }
-        else if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime)
+        else if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime) // Soft drop functionality
         {
             _transform.position -= new Vector3(0, 1, 0);
             _timer = 0;
@@ -134,8 +135,6 @@ public class BlockLogic : MonoBehaviour
                 ResetBlock();
             }
         }
-
-        // Implement hard drop, check lowest position on y axis and place block down
 
         // Repeated horizontal block movement
         if (Input.GetKey(KeyCode.LeftArrow))
