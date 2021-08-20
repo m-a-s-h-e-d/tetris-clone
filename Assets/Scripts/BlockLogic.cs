@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class BlockLogic : MonoBehaviour
@@ -110,8 +111,14 @@ public class BlockLogic : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Move the game object down based on greatest y value out of all x-axis of the rig
-            int cells = 5;
-            _gameLogic.IncrementDropScore(true, cells);
+            var cells = 0;
+            while (CheckValid())
+            {
+                _transform.position -= new Vector3(0, 1, 0);
+                cells++;
+            }
+            _gameLogic.IncrementDropScore(true, cells - 1); // Must remove one cell because it attempts to go lower by one
+            ResetBlock();
         }
         else if (Input.GetKey(KeyCode.DownArrow) && _timer > GameLogic.SoftDropTime) // Soft drop functionality
         {

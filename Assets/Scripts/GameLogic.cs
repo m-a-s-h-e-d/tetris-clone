@@ -10,7 +10,7 @@ public class GameLogic : MonoBehaviour
 {
     public static float DropTime = 0.9f;
     public static float SoftDropTime = 0.05f;
-    public static float HorizontalMoveTime = 0.05f;
+    public static float HorizontalMoveTime = 0.03f;
     public static float DelayedAutoShiftTime = 0.35f;
     public static int Width = 30, Height = 24;
     
@@ -32,7 +32,7 @@ public class GameLogic : MonoBehaviour
     public void EndGame()
     {
         // End the game and switch scene to game over with score
-        Debug.Log("Ending game");
+        Debug.Log($"Game Over! Total game score: {_score}");
         // Use a coroutine to set up an animation to make a smooth transition to the next scene
         SceneManager.LoadScene("GameOver");
     }
@@ -44,23 +44,23 @@ public class GameLogic : MonoBehaviour
         {
             case 1:
                 _combo = 0;
-                _score += 100;
+                _score += 800;
                 break;
             case 2:
                 _combo = 0;
-                _score += 300;
+                _score += 2000;
                 break;
             case 3:
                 _combo = 0;
-                _score += 500;
+                _score += 4200;
                 break;
-            default:
+            case 4:
                 _combo++;
-                _score += 1000;
-                _score += 50 * _combo;
+                _score += 10000;
+                _score += 1000 * _combo;
                 break;
         }
-        //Debug.Log(_score);
+        Debug.Log(_score);
     }
 
     public void IncrementDropScore(bool isHardDrop, int cells = 1)
@@ -77,12 +77,15 @@ public class GameLogic : MonoBehaviour
 
     public void ClearLines()
     {
+        var linesCleared = 0;
         for (var y = Height - 1; y >= 0; y--)
         {
             if (!IsLineComplete(y)) continue;
             DestroyLine(y);
             MoveLines(y);
+            linesCleared++;
         }
+        IncrementLineClearScore(linesCleared);
     }
 
     private void MoveLines(int y)
@@ -91,12 +94,10 @@ public class GameLogic : MonoBehaviour
         {
             for (var x = 0; x < Width; x++)
             {
-                if (Grid[x, i + 1] != null)
-                {
-                    Grid[x, i] = Grid[x, i + 1];
-                    Grid[x, i].gameObject.transform.position -= new Vector3(0, 1, 0);
-                    Grid[x, i + 1] = null;
-                }
+                if (Grid[x, i + 1] == null) continue;
+                Grid[x, i] = Grid[x, i + 1];
+                Grid[x, i].gameObject.transform.position -= new Vector3(0, 1, 0);
+                Grid[x, i + 1] = null;
             }
         }
     }
