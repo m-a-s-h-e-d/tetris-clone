@@ -8,45 +8,57 @@ using UnityEngine.UI;
 public class SettingsMenu : MonoBehaviour
 {
     // UnityEngine audio mixer
-    public AudioMixer audioMixer;
+    public AudioMixer AudioMixer;
 
     // Dropdown menu for resolution options
-    public TMPro.TMP_Dropdown resolutionDropdown;
+    public TMPro.TMP_Dropdown ResolutionDropdown;
+
+    // Fullscreen button status
+    public Toggle Toggle;
 
     // Window resolutions
-    Resolution[] resolutions;
+    private Resolution[] _resolutions;
 
     private void Start()
     {
-        resolutions = Screen.resolutions;
+        // Set the full screen button to the current status
+        Toggle.isOn = Screen.fullScreen;
 
-        resolutionDropdown.ClearOptions();
+        _resolutions = Screen.resolutions;
+
+        ResolutionDropdown.ClearOptions();
 
         // Create strings for resolutions and store current resolution index
-        List<string> options = new List<string>();
-        int currentResolutionIndex = 0;
-        for (int i = 0; i < resolutions.Length; i++)
+        var options = new List<string>();
+        var currentResolutionIndex = 0;
+        for (var i = 0; i < _resolutions.Length; i++)
         {
-            string option = resolutions[i].width + " x " + resolutions[i].height;
+            var option = _resolutions[i].width + " x " + _resolutions[i].height;
+
+            if (_resolutions[i].refreshRate > 60)
+            {
+                option += " " + _resolutions[i].refreshRate + "hz";
+            }
+
             options.Add(option);
 
-            if (resolutions[i].width == Screen.currentResolution.width &&
-                resolutions[i].height == Screen.currentResolution.height)
+            if (_resolutions[i].width == Screen.currentResolution.width &&
+                _resolutions[i].height == Screen.currentResolution.height)
             {
                 currentResolutionIndex = i;
             }
         }
 
         // Add options to the dropdown menu then update selected resolution and refresh
-        resolutionDropdown.AddOptions(options);
-        resolutionDropdown.value = currentResolutionIndex;
-        resolutionDropdown.RefreshShownValue();
+        ResolutionDropdown.AddOptions(options);
+        ResolutionDropdown.value = currentResolutionIndex;
+        ResolutionDropdown.RefreshShownValue();
     }
 
     // Set screen resolution
-    public void setResolution (int resolutionIndex)
+    public void SetResolution (int resolutionIndex)
     {
-        Resolution resolution = resolutions[resolutionIndex];
+        Resolution resolution = _resolutions[resolutionIndex];
         Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
     }
 
@@ -54,7 +66,7 @@ public class SettingsMenu : MonoBehaviour
     public void SetVolume(float volume)
     {
         // Use the audio mixer to handle volume
-        audioMixer.SetFloat("volume", volume);
+        AudioMixer.SetFloat("volume", volume);
     }
 
     // Set game screen mode

@@ -1318,8 +1318,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83dc59a56c0df0f45895c7a15e2a3b12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioMixer: {fileID: 24100000, guid: c6cd2f3096513db4ca80589f6e823fce, type: 2}
-  resolutionDropdown: {fileID: 1821903897}
+  AudioMixer: {fileID: 24100000, guid: c6cd2f3096513db4ca80589f6e823fce, type: 2}
+  ResolutionDropdown: {fileID: 1821903897}
+  Toggle: {fileID: 812785969}
 --- !u!1 &792344269
 GameObject:
   m_ObjectHideFlags: 0
@@ -2678,7 +2679,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 781058842}
         m_TargetAssemblyTypeName: SettingsMenu, Assembly-CSharp
-        m_MethodName: setResolution
+        m_MethodName: SetResolution
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
