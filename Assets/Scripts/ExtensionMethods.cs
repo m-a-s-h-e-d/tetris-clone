@@ -7,6 +7,8 @@ using Random = System.Random;
 
 public static class ExtensionMethods
 {
+    // Shuffle is based on Fisher-Yates-Durstenfeld's unbiased shuffle algorithm with buffers
+    // See here: https://stackoverflow.com/a/5807238
     public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
     {
         return source.Shuffle(new Random());

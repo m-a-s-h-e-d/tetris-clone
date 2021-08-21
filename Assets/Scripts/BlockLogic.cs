@@ -9,6 +9,8 @@ public class BlockLogic : MonoBehaviour
 {
     private bool _movable = true;
     private bool _firstInput = true;
+    private bool _isHoldingLeft = false;
+    private bool _isHoldingRight = false;
     private float _timer = 0f;
     private float _horizontalTimer = 0f;
     private float _dasTimer = 0f;
@@ -26,9 +28,15 @@ public class BlockLogic : MonoBehaviour
         _transform = transform;
         _rigTransform = Rig.transform;
 
+        // If the block spawns in an invalid position, it will ignore this block and end the game
         if (CheckValid()) return;
 
         _movable = false;
+        // Jank way to prevent the block from being visible from the player
+        foreach (Transform subBlock in _rigTransform)
+        {
+            Destroy(subBlock.gameObject);
+        }
         _gameLogic.EndGame();
     }
 
@@ -75,14 +83,17 @@ public class BlockLogic : MonoBehaviour
     // Check for valid positions
     private bool CheckValid()
     {
+        // Goes through each block on the entire entity rig to check if they are not colliding and within bounds
         foreach (Transform subBlock in _rigTransform)
         {
+            // Check if block is within play field bounds
             if (subBlock.transform.position.x >= GameLogic.Width ||
                 Math.Round(subBlock.transform.position.x) < 0 ||
                 subBlock.transform.position.y < 0)
             {
                 return false;
             }
+            // Check for collision with other blocks
             if (subBlock.position.y < GameLogic.Height && _gameLogic.Grid[Mathf.RoundToInt(subBlock.position.x), Mathf.FloorToInt(subBlock.position.y)] != null)
             {
                 return false;
@@ -142,21 +153,30 @@ public class BlockLogic : MonoBehaviour
                 ResetBlock();
             }
         }
-
-        // Repeated horizontal block movement
-        if (Input.GetKey(KeyCode.LeftArrow))
+        
+        // Prevents auto shift from happening without a delay when quickly switching to the other key
+        if (_isHoldingLeft && _isHoldingRight || !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
         {
+            _isHoldingLeft = false;
+            _isHoldingRight = false;
+            _dasTimer = 0;
+            _firstInput = true;
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            // Delayed auto shift system, checks for first input, then DAS timer will start if you hold down on the key
             switch (_firstInput)
             {
                 case true:
                 {
                     _firstInput = false;
-                    ShiftLeft();
+                    if (!_isHoldingRight) ShiftLeft();
                     break;
                 }
                 case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
                 {
-                    ShiftLeft();
+                    _isHoldingLeft = true;
+                    if (!_isHoldingRight) ShiftLeft();
                     break;
                 }
             }
@@ -168,20 +188,16 @@ public class BlockLogic : MonoBehaviour
                 case true:
                 {
                     _firstInput = false;
-                    ShiftRight();
+                    if (!_isHoldingLeft) ShiftRight();
                     break;
                 }
                 case false when _dasTimer > GameLogic.DelayedAutoShiftTime && _horizontalTimer > GameLogic.HorizontalMoveTime:
                 {
-                    ShiftRight();
+                    _isHoldingRight = true;
+                    if (!_isHoldingLeft) ShiftRight();
                     break;
                 }
             }
-        }
-        else if (!Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-        {
-            _dasTimer = 0;
-            _firstInput = true;
         }
 
         // Block rotation
