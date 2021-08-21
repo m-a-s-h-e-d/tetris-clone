@@ -7,7 +7,7 @@
 
 ## Build and Run
 Official releases will be built and available for download through the repository release list.
-For testing and other experimental purposes, you can access the most recent test build through the "Build" directory in the main branch.
+For testing and other experimental purposes, you can access the most recent test build through the "Release" directory in the main branch.
 Alternatively, you can access any development branch to get the latest experimental code, which you can then build for yourself through Unity.
 
 ## Open Source
