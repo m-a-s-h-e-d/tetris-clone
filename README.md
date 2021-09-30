@@ -1,5 +1,5 @@
 # Multris
-2.5D Cooperative Tetris clone created with Unity 3D.
+2.5D Cooperative Tetris clone created with Unity 3D. Multiplayer implemented with Mirror.
 
 ## Setup
 - Unity Version: 2020.3.15f2
